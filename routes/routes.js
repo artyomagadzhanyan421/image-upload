@@ -56,4 +56,24 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 });
 
+// PUT: Update image by ID
+router.put('/:id', upload.single('image'), async (req, res) => {
+    try {
+        const image = await Image.findById(req.params.id);
+        if (!image) {
+            return res.status(404).json({ message: 'Image not found' });
+        }
+
+        // Update image URL if a new file was uploaded
+        if (req.file) {
+            image.imageUrl = req.file.path;
+        }
+
+        const updatedImage = await image.save();
+        res.json(updatedImage);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update image' });
+    }
+});
+
 module.exports = router;
