@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { storage } = require('../config/cloudinary');
+const { storage, cloudinary } = require('../config/cloudinary');
 const upload = multer({ storage });
 const Image = require('../mongodb/models/Image');
 
@@ -32,11 +32,18 @@ router.get('/:id', async (req, res) => {
 // DELETE image by ID
 router.delete('/:id', async (req, res) => {
     try {
-        const deletedImage = await Image.findByIdAndDelete(req.params.id);
-        if (!deletedImage) {
+        const image = await Image.findById(req.params.id);
+        if (!image) {
             return res.status(404).json({ message: 'Image not found' });
         }
-        res.json({ message: 'Image deleted successfully', deletedImage });
+
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(image.public_id);
+
+        // Delete from MongoDB
+        await Image.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Image deleted from MongoDB and Cloudinary' });
     } catch (err) {
         res.status(500).json({ error: 'Server error' });
     }
@@ -47,6 +54,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     try {
         const image = new Image({
             imageUrl: req.file.path,
+            public_id: req.file.filename
         });
 
         const savedImage = await image.save();
