@@ -1,9 +1,16 @@
 const express = require('express');
+const Image = require('../mongodb/models/Image');
+
 const router = express.Router();
 
-// Define your routes
-router.get('/', (req, res) => {
-    res.send('Welcome to the Express app!');
+// GET request
+router.get('/', async (req, res) => {
+    try {
+        const images = await Image.find();
+        res.json(images);
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 module.exports = router;

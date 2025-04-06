@@ -1,10 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const mainRoutes = require('./routes/routes');
+const connectDB = require('./mongodb/connect');
 
 const app = express();
 
 dotenv.config();
+
+connectDB();
 
 app.use(express.json());
 
