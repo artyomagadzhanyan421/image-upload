@@ -1,4 +1,7 @@
 const express = require('express');
+const multer = require('multer');
+const { storage } = require('../config/cloudinary');
+const upload = multer({ storage });
 const Image = require('../mongodb/models/Image');
 
 const router = express.Router();
@@ -36,6 +39,20 @@ router.delete('/:id', async (req, res) => {
         res.json({ message: 'Image deleted successfully', deletedImage });
     } catch (err) {
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// POST: Upload image
+router.post('/', upload.single('image'), async (req, res) => {
+    try {
+        const image = new Image({
+            imageUrl: req.file.path,
+        });
+
+        const savedImage = await image.save();
+        res.status(201).json(savedImage);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to upload image' });
     }
 });
 
