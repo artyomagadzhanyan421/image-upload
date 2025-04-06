@@ -72,9 +72,14 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             return res.status(404).json({ message: 'Image not found' });
         }
 
-        // Update image URL if a new file was uploaded
+        // If a new file was uploaded, delete old image from Cloudinary
         if (req.file) {
+            // Delete previous image from Cloudinary
+            await cloudinary.uploader.destroy(image.public_id);
+
+            // Update with new Cloudinary image data
             image.imageUrl = req.file.path;
+            image.public_id = req.file.filename;
         }
 
         const updatedImage = await image.save();
